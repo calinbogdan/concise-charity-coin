@@ -1,122 +1,88 @@
-import React, { Component, useContext, useEffect, useState } from "react";
-import SimpleStorageContract from "./contracts/SimpleStorage.json";
-import Web3 from "web3";
+import React from "react";
+import { Web3Provider, Web3Consumer } from "./Web3Context";
 
 
-const getWeb3 = () =>
-  new Promise((resolve, reject) => {
-    // Wait for loading completion to avoid race conditions with web3 injection timing.
-    window.addEventListener("load", async () => {
-      // Modern dapp browsers...
-      if (window.ethereum) {
-        const web3 = new Web3(window.ethereum);
-        try {
-          // Request account access if needed
-          await window.ethereum.enable();
-          // Acccounts now exposed
-          resolve(web3);
-        } catch (error) {
-          reject(error);
-        }
-      }
-      // Legacy dapp browsers...
-      else if (window.web3) {
-        // Use Mist/MetaMask's provider.
-        const web3 = window.web3;
-        console.log("Injected web3 detected.");
-        resolve(web3);
-      }
-      // Fallback to localhost; use dev console port by default...
-      else {
-        const provider = new Web3.providers.HttpProvider(
-          "http://127.0.0.1:8545"
-        );
-        const web3 = new Web3(provider);
-        console.log("No web3 instance injected, using Local web3.");
-        resolve(web3);
-      }
-    });
-  });
+const Toolbar = () => (
+  <Web3Consumer>
+    { ({ account }) => (<div>
+      <h5>Account: {account}</h5>
+    </div>)}
+  </Web3Consumer>
+);
+
+const App = () => (
+  <Web3Provider>
+    <Toolbar/>
+  </Web3Provider>
+);
 
 
-const App = () => {
-  const [ethereumAccount, setEthereumAccount] = useState(null);
+/* class App extends Component {
+  state = { storageValue: 0, web3: null, accounts: null, contract: null };
 
-  useEffect(() => { 
-    console.log(window.ethereum);
-  }, [window.ethereum]);
-  return (<div>
-    <h1>{ethereumAccount}</h1>
-  </div>)
-}
+  componentDidMount = async () => {
 
 
-// class App extends Component {
-//   state = { storageValue: 0, web3: null, accounts: null, contract: null };
+    try {
+      // Get network provider and web3 instance.
+      const web3 = await getWeb3();
 
-//   componentDidMount = async () => {
+      // Use web3 to get the user's accounts.
+      const accounts = await web3.eth.getAccounts();
 
+      // Get the contract instance.
+      const networkId = await web3.eth.net.getId();
+      const deployedNetwork = SimpleStorageContract.networks[networkId];
+      const instance = new web3.eth.Contract(
+        SimpleStorageContract.abi,
+        deployedNetwork && deployedNetwork.address,
+      );
 
-//     try {
-//       // Get network provider and web3 instance.
-//       const web3 = await getWeb3();
+      // Set web3, accounts, and contract to the state, and then proceed with an
+      // example of interacting with the contract's methods.
+      this.setState({ web3, accounts, contract: instance }, this.runExample);
+    } catch (error) {
+      // Catch any errors for any of the above operations.
+      alert(
+        `Failed to load web3, accounts, or contract. Check console for details.`,
+      );
+      console.error(error);
+    }
+  };
 
-//       // Use web3 to get the user's accounts.
-//       const accounts = await web3.eth.getAccounts();
+  runExample = async () => {
+    const { accounts, contract } = this.state;
 
-//       // Get the contract instance.
-//       const networkId = await web3.eth.net.getId();
-//       const deployedNetwork = SimpleStorageContract.networks[networkId];
-//       const instance = new web3.eth.Contract(
-//         SimpleStorageContract.abi,
-//         deployedNetwork && deployedNetwork.address,
-//       );
+    // Stores a given value, 5 by default.
+    await contract.methods.set(6).send({ from: accounts[0] });
 
-//       // Set web3, accounts, and contract to the state, and then proceed with an
-//       // example of interacting with the contract's methods.
-//       this.setState({ web3, accounts, contract: instance }, this.runExample);
-//     } catch (error) {
-//       // Catch any errors for any of the above operations.
-//       alert(
-//         `Failed to load web3, accounts, or contract. Check console for details.`,
-//       );
-//       console.error(error);
-//     }
-//   };
+    // Get the value from the contract to prove it worked.
+    const response = await contract.methods.get().call();
 
-//   runExample = async () => {
-//     const { accounts, contract } = this.state;
+    // Update state with the result.
+    this.setState({ storageValue: response });
+  };
 
-//     // Stores a given value, 5 by default.
-//     await contract.methods.set(6).send({ from: accounts[0] });
-
-//     // Get the value from the contract to prove it worked.
-//     const response = await contract.methods.get().call();
-
-//     // Update state with the result.
-//     this.setState({ storageValue: response });
-//   };
-
-//   render() {
-//     if (!this.state.web3) {
-//       return <div>Loading Web3, accounts, and contract...</div>;
-//     }
-//     return (
-//       <div>
-//         <h1>Good to Go!</h1>
-//         <p>Your Truffle Box is installed and ready.</p>
-//         <h2>Smart Contract Example</h2>
-//         <p>
-//           If your contracts compiled and migrated successfully, below will show
-//           a stored value of 5 (by default).
-//         </p>
-//         <p>
-//           Try changing the value stored on <strong>line 40</strong> of App.js.
-//         </p>
-//         <div>The stored value is: {this.state.storageValue}</div>
-//       </div>
-//     );
-//   }
-// }
+  render() {
+    if (!this.state.web3) {
+      return <div>Loading Web3, accounts, and contract...</div>;
+    }
+    return (
+      <div>
+        <h1>Good to Go!</h1>
+        <p>Your Truffle Box is installed and ready.</p>
+        <h2>Smart Contract Example</h2>
+        <p>
+          If your contracts compiled and migrated successfully, below will show
+          a stored value of 5 (by default).
+        </p>
+        <p>
+          Try changing the value stored on <strong>line 40</strong> of App.js.
+        </p>
+        <div>The stored value is: {this.state.storageValue}</div>
+      </div>
+    );
+  }
+} */
 
 export default App;
