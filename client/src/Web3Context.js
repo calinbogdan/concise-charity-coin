@@ -25,12 +25,10 @@ const Web3Provider = ({ children }) => {
         const networkId = await web3.eth.net.getId();
         const network = ConciseCharityCoin.networks[networkId];
 
-        setWeb3({
-            web3, 
-            account: (await web3.eth.getAccounts())[0],
-            contract: new web3.eth.Contract(
-                ConciseCharityCoin.abi, network?.address)
-        });
+        const contract = new web3.eth.Contract(
+            ConciseCharityCoin.abi, network?.address);
+
+        setWeb3({ web3, contract, account: (await web3.eth.getAccounts())[0] });
     }, []);
 
     return (<Web3Context.Provider value={web3}>

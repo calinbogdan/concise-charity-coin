@@ -1,18 +1,31 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
 import { Web3Provider, Web3Consumer } from "./Web3Context";
 
 
-const Toolbar = () => (
-  <Web3Consumer>
-    { ({ account }) => (<div>
-      <h5>Account: {account}</h5>
-    </div>)}
-  </Web3Consumer>
-);
+
+
+
+const Toolbar = ({ account, contract }) => {
+  const [balance, setBalance] = useState(0);
+
+  useEffect(() => {       
+    const stuff = contract?.methods?.balanceOf(account).call().then(setBalance);
+  }, [account]);
+
+  return (<div>
+        <h3>Account: {account}</h3>
+        <h1>Balance: {balance}</h1>
+      </div>);
+};
 
 const App = () => (
   <Web3Provider>
-    <Toolbar/>
+    <Web3Consumer>
+      { ({ account, contract }) => {
+        console.log(contract?.methods.balances(0));
+        return (<Toolbar account={account} contract={contract}/>);
+      }}
+    </Web3Consumer>
   </Web3Provider>
 );
 

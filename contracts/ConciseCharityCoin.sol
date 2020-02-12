@@ -1,7 +1,7 @@
 pragma solidity >= 0.5.0 < 0.7.0;
 
 contract ConciseCharityCoin {
-  mapping (address => uint256) balances;
+  mapping (address => uint256) public balances;
   
   constructor() public {
 
