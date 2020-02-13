@@ -1,33 +1,49 @@
 import React, { useEffect, useState } from "react";
-import { Web3Provider, Web3Consumer } from "./Web3Context";
+import Web3 from "web3";
+import ConciseCharityCoin from "./contracts/ConciseCharityCoin.json";
 
-
-
-
-
-const Toolbar = ({ account, contract }) => {
+const App = () => {
+  const [web3, setWeb3] = useState({});
   const [balance, setBalance] = useState(0);
 
-  useEffect(() => {       
-    const stuff = contract?.methods?.balanceOf(account).call().then(setBalance);
-  }, [account]);
+  useEffect(() => {
+    const getWeb3 = async () => {
+      let web3;
+      if (window.ethereum) {
+          web3 = new Web3(window.ethereum);
+          await window.ethereum.enable();
+      } else if (window.web3) {
+          web3 = window.web3;
+      } else {
+          throw new Error("Something clearly went wrong.");
+      }
+
+      const networkId = await web3.eth.net.getId();
+      const network = ConciseCharityCoin.networks[networkId];
+
+      const contract = new web3.eth.Contract(
+          ConciseCharityCoin.abi, network?.address);
+
+      setWeb3({ web3, contract, account: (await web3.eth.getAccounts())[0] });
+    };
+    getWeb3();    
+  }, []);
+
+  useEffect(() => {
+    const getBalanceFor = async account => {
+      if (web3.contract) {
+        const balanceOfAccount = await web3.contract.methods.balanceOf(account).call();
+        setBalance(balanceOfAccount);
+      }
+    };
+    getBalanceFor(web3.account);
+  }, [web3.account]);
 
   return (<div>
-        <h3>Account: {account}</h3>
-        <h1>Balance: {balance}</h1>
-      </div>);
+    <h3>Account: {web3.account}</h3>
+    <h1>Balance: {balance} </h1>
+  </div>)
 };
-
-const App = () => (
-  <Web3Provider>
-    <Web3Consumer>
-      { ({ account, contract }) => {
-        console.log(contract?.methods.balances(0));
-        return (<Toolbar account={account} contract={contract}/>);
-      }}
-    </Web3Consumer>
-  </Web3Provider>
-);
 
 
 /* class App extends Component {
